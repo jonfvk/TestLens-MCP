@@ -52,6 +52,28 @@ def test_parse_single_suite_and_error_node(tmp_path: Path):
     assert report.failures[0].suite == "integration"
 
 
+def test_reject_document_type_declarations(tmp_path: Path):
+    report_file = tmp_path / "unsafe.xml"
+    report_file.write_text(
+        '<!DOCTYPE testsuite [<!ENTITY x "expanded">]>'
+        '<testsuite name="&x;"><testcase /></testsuite>'
+    )
+
+    with pytest.raises(ReportFormatError, match="declarations"):
+        parse_report(report_file)
+
+
+def test_reject_oversized_xml_report(tmp_path: Path, monkeypatch):
+    import testlens.parser as parser
+
+    report_file = tmp_path / "large.xml"
+    report_file.write_text("<testsuite />")
+    monkeypatch.setattr(parser, "MAX_REPORT_BYTES", 4)
+
+    with pytest.raises(ReportFormatError, match="size limit"):
+        parse_report(report_file)
+
+
 @pytest.mark.parametrize(
     "xml, message",
     [

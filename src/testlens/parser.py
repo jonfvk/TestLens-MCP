@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 
 from testlens.models import TestFailure, TestReport, TestSuite
 
+MAX_REPORT_BYTES = 5 * 1024 * 1024
+
 
 class ReportFormatError(ValueError):
     """Raised when an XML file is not a supported test report."""
@@ -36,8 +38,15 @@ def _duration(element: ET.Element) -> float:
 
 def parse_report(path: Path) -> TestReport:
     """Parse a JUnit ``testsuite`` or ``testsuites`` XML document."""
+    with path.open("rb") as report_file:
+        data = report_file.read(MAX_REPORT_BYTES + 1)
+
+    if len(data) > MAX_REPORT_BYTES:
+        raise ReportFormatError(f"Report exceeds the {MAX_REPORT_BYTES}-byte size limit")
+    if b"<!DOCTYPE" in data.upper():
+        raise ReportFormatError("Document type declarations are not allowed")
     try:
-        root = ET.parse(path).getroot()
+        root = ET.fromstring(data)
     except ET.ParseError as exc:
         raise ReportFormatError(f"Invalid XML report: {exc}") from exc
 
