@@ -4,6 +4,7 @@ import math
 import xml.etree.ElementTree as ET
 
 from testlens.models import TestFailure, TestReport, TestSuite
+from testlens.sanitize import sanitize_text
 
 MAX_REPORT_BYTES = 5 * 1024 * 1024
 
@@ -97,8 +98,8 @@ def parse_report(path: Path) -> TestReport:
                     classname=case.get("classname", ""),
                     name=case.get("name", "unnamed"),
                     kind=node.tag,
-                    message=node.get("message", ""),
-                    traceback=(node.text or "").strip(),
+                    message=sanitize_text(node.get("message", ""), max_chars=1000),
+                    traceback=sanitize_text((node.text or "").strip()),
                     duration_seconds=_duration(case),
                 )
             )
