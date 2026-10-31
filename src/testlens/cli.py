@@ -29,6 +29,7 @@ def create_parser() -> argparse.ArgumentParser:
     ):
         subcommand = commands.add_parser(command, help=help_text)
         subcommand.add_argument("report", help="Workspace-relative XML report path")
+    commands.add_parser("serve", help="Run the read-only MCP server over stdio")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -40,6 +41,11 @@ def create_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = create_parser().parse_args(argv)
+    if args.command == "serve":
+        from testlens.mcp_server import create_server
+
+        create_server(args.workspace).run("stdio")
+        return 0
     try:
         catalog = ReportCatalog(args.workspace)
         if args.command == "list":
