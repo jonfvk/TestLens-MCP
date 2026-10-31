@@ -12,7 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 mcp = ["mcp>=2,<3"]
-test = ["pytest>=8,<9"]
+test = ["mcp>=2,<3", "pytest>=8,<9"]
 
 [project.scripts]
 testlens = "testlens.cli:main"

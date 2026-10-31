@@ -1,7 +1,11 @@
 import asyncio
 import json
+import os
 from pathlib import Path
+import sys
 
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 from testlens.mcp_server import create_server
 
 
@@ -42,3 +46,23 @@ def test_server_tool_calls_return_sanitized_data(tmp_path: Path):
     response = json.loads(result.content[0].text)
     assert response["tests"] == 1
     assert "hunter2" not in result.content[0].text
+
+
+def test_stdio_server_protocol_round_trip(tmp_path: Path):
+    async def verify_protocol():
+        params = StdioServerParameters(
+            command=sys.executable,
+            args=["-m", "testlens", "--workspace", str(tmp_path), "serve"],
+            env=os.environ.copy(),
+        )
+        async with stdio_client(params) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                tools = await session.list_tools()
+                return {tool.name for tool in tools.tools}
+
+    tools = asyncio.run(verify_protocol())
+
+    assert "list_test_reports" in tools
+    assert "summarize_test_report" in tools
+    assert "get_test_failures" in tools
