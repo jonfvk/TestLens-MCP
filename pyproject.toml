@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "testlens-mcp"
+version = "0.1.0"
+description = "Read-only MCP tools for inspecting local JUnit test reports"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=2,<3"]
+test = ["pytest>=8,<9"]
+
+[project.scripts]
+testlens = "testlens.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
