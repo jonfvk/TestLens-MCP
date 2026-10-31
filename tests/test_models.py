@@ -1,14 +1,15 @@
 from pathlib import Path
 
-from testlens.models import TestReport, TestSuite
+from testlens.models import TestReport as ReportModel
+from testlens.models import TestSuite as SuiteModel
 
 
 def test_report_aggregates_suite_counts():
-    report = TestReport(
+    report = ReportModel(
         Path("junit.xml"),
         (
-            TestSuite("unit", 10, 1, 1, 2, 1.5),
-            TestSuite("integration", 5, 0, 0, 1, 2.0),
+            SuiteModel("unit", 10, 1, 1, 2, 1.5),
+            SuiteModel("integration", 5, 0, 0, 1, 2.0),
         ),
         (),
     )
@@ -22,7 +23,7 @@ def test_report_aggregates_suite_counts():
 
 
 def test_empty_report_has_zero_totals():
-    report = TestReport(Path("empty.xml"), (), ())
+    report = ReportModel(Path("empty.xml"), (), ())
 
     assert report.tests == 0
     assert report.passed == 0
